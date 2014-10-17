@@ -75,7 +75,13 @@ public class WordFinder extends JFrame {
 	JLabel numWordsString = new JLabel("");
 
 	// JTable to contain list of words
-	JTable wordListTable = new JTable();
+	JTable wordListTable = new JTable() {
+		// make table uneditable
+		public boolean isCellEditable(int row, int column) {
+			return false;
+		}
+	};
+	
 	// table model used by the JTable
 	DefaultTableModel wordListModel = new DefaultTableModel();
 	// Create a table sorter object to filter the display
@@ -107,10 +113,11 @@ public class WordFinder extends JFrame {
 				int returnVal = chooser.showOpenDialog(getParent());
 				if (returnVal == JFileChooser.APPROVE_OPTION) {
 					System.out.println("You chose to open this file: "
-							+ chooser.getSelectedFile().getAbsolutePath());//chooser.getSelectedFile().getName());
-					
-//					load in the default word list
-					String stringURL = "file:" + chooser.getSelectedFile().getAbsolutePath();
+							+ chooser.getSelectedFile().getAbsolutePath());// chooser.getSelectedFile().getName());
+
+					// load in the default word list
+					String stringURL = "file:"
+							+ chooser.getSelectedFile().getAbsolutePath();
 					URL url;
 					try {
 						url = new URL(stringURL);
@@ -228,29 +235,6 @@ public class WordFinder extends JFrame {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 	}
 
-	// Code from
-	// http://stackoverflow.com/questions/7067303/jtable-filtering-with-jtextfield-doesnt-work
-	// called whenever the input field changes
-	private void newFilter() {
-		// generic object used to sort/filter models
-		RowFilter<DefaultTableModel, Object> rowFilter = null;
-		try {
-			// try matching the table model with the entered word, ignoring case
-			// (regex)
-			rowFilter = RowFilter.regexFilter("(?i)" + inputField.getText());
-		} catch (java.util.regex.PatternSyntaxException ex) {
-			return;
-		}
-		// set the table sorter object to use the defined row filter
-		sorter.setRowFilter(rowFilter);
-
-		// set the table to be sorted by the table sorter
-		wordListTable.setRowSorter(sorter);
-		
-		// update the label for number of words found
-		setNumWordsString();
-	}
-
 	// method for opening files
 	private void loadFile(URL url) {
 		System.out.println(url);
@@ -270,7 +254,8 @@ public class WordFinder extends JFrame {
 
 		// DefaultListModel wordListModel = new DefaultListModel();
 
-		// initialize word list model. a one column table with the right number of rows
+		// initialize word list model. a one column table with the right number
+		// of rows
 		wordListModel = new DefaultTableModel(new Object[] { "words" },
 				data.size());
 
@@ -283,33 +268,62 @@ public class WordFinder extends JFrame {
 		for (int i = 0; i < wordListModel.getRowCount(); i++) {
 			wordListModel.setValueAt(dataArray[i], i, 0);
 		}
-		
+
+		// store total number of words
+		totalWords = wordListModel.getRowCount();
+
 		// set the table model
 		wordListTable.setModel(wordListModel);
 
-		// store total number of words
-		totalWords = wordListTable.getRowCount();
-		
+		// hide the table header
+		wordListTable.setTableHeader(null);
+
 		// set the sorter object
 		sorter.setModel(wordListModel);
-		
+
 		// update the label for number of words found
 		setNumWordsString();
 	}
-	
+
 	private void setNumWordsString() {
 		// change the text label describing how many words are found
 		if (totalWords == wordListTable.getRowCount()) {
-			numWordsString.setText(totalWords + " total words.");
+			numWordsString.setText(totalWords + " words total");
 		} else if (wordListTable.getRowCount() == 1) {
-			numWordsString.setText(wordListTable.getRowCount()
-					+ " word found containing " + inputField.getText());
+			numWordsString
+					.setText(wordListTable.getRowCount()
+							+ " word found containing \'"
+							+ inputField.getText() + "\'");
 		} else {
 			numWordsString.setText(wordListTable.getRowCount()
-					+ " words found containing " + inputField.getText());
+					+ " words found containing \'" + inputField.getText()
+					+ "\'");
 		}
 	}
-	
+
+	// Code from
+	// http://stackoverflow.com/questions/7067303/jtable-filtering-with-jtextfield-doesnt-work
+	// called whenever the input field changes
+	private void newFilter() {
+		// generic object used to sort/filter models
+		RowFilter<DefaultTableModel, Object> rowFilter = null;
+		try {
+			// try matching the table model with the entered word, ignoring case
+			// (regex)
+			rowFilter = RowFilter.regexFilter("(?i)" + inputField.getText());
+		} catch (java.util.regex.PatternSyntaxException ex) {
+			return;
+		}
+		// set the table sorter object to use the defined row filter
+		sorter.setRowFilter(rowFilter);
+
+		// set the table to be sorted by the table sorter
+		wordListTable.setRowSorter(sorter);
+
+		// update the label for number of words found
+		setNumWordsString();
+	}
+
 	/**
 	 * Main method. Makes and displays a WordFinder window.
 	 * 
