@@ -3,6 +3,7 @@ import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
@@ -74,10 +75,11 @@ public class WordFinder extends JFrame {
 	JLabel numWordsString = new JLabel("");
 
 	// JTable to contain list of words
-	JTable wordListTable;
-
+	JTable wordListTable = new JTable();
+	// table model used by the JTable
+	DefaultTableModel wordListModel = new DefaultTableModel();
 	// Create a table sorter object to filter the display
-	TableRowSorter<DefaultTableModel> sorter;
+	TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<DefaultTableModel>();
 
 	public WordFinder() {
 		super("Word Finder");
@@ -95,6 +97,40 @@ public class WordFinder extends JFrame {
 		menu.add(openMenuItem);
 		menu.add(exitMenuItem);
 
+		// open menu item opens the file chooser
+		openMenuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+
+				// use the file type filter on the file chooser
+				chooser.setFileFilter(filter);
+
+				int returnVal = chooser.showOpenDialog(getParent());
+				if (returnVal == JFileChooser.APPROVE_OPTION) {
+					System.out.println("You chose to open this file: "
+							+ chooser.getSelectedFile().getAbsolutePath());//chooser.getSelectedFile().getName());
+					
+//					load in the default word list
+					String stringURL = "file:" + chooser.getSelectedFile().getAbsolutePath();
+					URL url;
+					try {
+						url = new URL(stringURL);
+						loadFile(url);
+					} catch (MalformedURLException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
+
+		// exit menu item quits the program
+		exitMenuItem.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				System.exit(0);
+			}
+		});
+
+		// add the menu bar to the window
 		window.setJMenuBar(menuBar);
 
 		panel.setLayout(new GridBagLayout());
@@ -148,62 +184,17 @@ public class WordFinder extends JFrame {
 
 		c.fill = GridBagConstraints.BOTH;
 
-		// use the file type filter on the file chooser
-		chooser.setFileFilter(filter);
-
-		int returnVal = chooser.showOpenDialog(getParent());
-		if (returnVal == JFileChooser.APPROVE_OPTION) {
-			System.out.println("You chose to open this file: "
-					+ chooser.getSelectedFile().getName());
-		}
-
-		// load in the default word list
-		URL url = WordFinder.class.getResource("words.txt");
-		System.out.println(url);
-		if (url == null)
-			throw new RuntimeException("Missing resource: words");
-		try {
-			words.load(url.openStream());
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-
 		// test string list data
 		// String[] data = { "a", "b", "c", "a", "b", "c", "a", "b", "c", "a",
 		// "b", "c", "a", "b", "c" };
 
-		@SuppressWarnings("unchecked")
-		List<String> data = words.find("");
-
-		// DefaultListModel wordListModel = new DefaultListModel();
-
-		// create a word list model. a one column table with the right number of
-		// rows
-		DefaultTableModel wordListModel = new DefaultTableModel(
-				new Object[] { "words" }, data.size());
-
-		// convert generic List to array
-		String[] dataArray = new String[data.size()];
-		dataArray = data.toArray(dataArray);
-
-		System.out.println(wordListModel.getRowCount());
-		// insert the words into the table from the default file
-		for (int i = 0; i < wordListModel.getRowCount(); i++) {
-			wordListModel.setValueAt(dataArray[i], i, 0);
-		}
-
-		// initialize the sorter object
-		sorter = new TableRowSorter<DefaultTableModel>(wordListModel);
-
-		// create the actual table that will be displayed, using the table model
-		wordListTable = new JTable(wordListModel);
+		// load in the default word list
+		URL url = WordFinder.class.getResource("words.txt");
+		loadFile(url);
 
 		// add the word table to a scrolling pane
 		JScrollPane scrollPane = new JScrollPane(wordListTable);
 		panel.add(scrollPane, c);
-
-		// store total number of words
-		totalWords = wordListTable.getRowCount();
 
 		// add event listener to the inputField to listen to the underlying
 		// Document for changes
@@ -255,7 +246,58 @@ public class WordFinder extends JFrame {
 
 		// set the table to be sorted by the table sorter
 		wordListTable.setRowSorter(sorter);
+		
+		// update the label for number of words found
+		setNumWordsString();
+	}
 
+	// method for opening files
+	private void loadFile(URL url) {
+		System.out.println(url);
+		if (url == null)
+			throw new RuntimeException("Missing resource: words");
+		try {
+			words.load(url.openStream());
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		// reset the table model
+		wordListModel.setRowCount(0);
+
+		@SuppressWarnings("unchecked")
+		List<String> data = words.find("");
+
+		// DefaultListModel wordListModel = new DefaultListModel();
+
+		// initialize word list model. a one column table with the right number of rows
+		wordListModel = new DefaultTableModel(new Object[] { "words" },
+				data.size());
+
+		// convert generic List to array
+		String[] dataArray = new String[data.size()];
+		dataArray = data.toArray(dataArray);
+
+		System.out.println(wordListModel.getRowCount());
+		// insert the words into the table from the default file
+		for (int i = 0; i < wordListModel.getRowCount(); i++) {
+			wordListModel.setValueAt(dataArray[i], i, 0);
+		}
+		
+		// set the table model
+		wordListTable.setModel(wordListModel);
+
+		// store total number of words
+		totalWords = wordListTable.getRowCount();
+		
+		// set the sorter object
+		sorter.setModel(wordListModel);
+		
+		// update the label for number of words found
+		setNumWordsString();
+	}
+	
+	private void setNumWordsString() {
 		// change the text label describing how many words are found
 		if (totalWords == wordListTable.getRowCount()) {
 			numWordsString.setText(totalWords + " total words.");
@@ -267,7 +309,7 @@ public class WordFinder extends JFrame {
 					+ " words found containing " + inputField.getText());
 		}
 	}
-
+	
 	/**
 	 * Main method. Makes and displays a WordFinder window.
 	 * 
