@@ -6,17 +6,18 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
-import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 
 // we don't want java.awt.List
 
@@ -55,8 +56,8 @@ public class WordFinder extends JFrame {
 	// total words found label
 	JLabel numWordsString = new JLabel("45427 words total.");
 
-	// JList to contain list of words
-	JList wordList;
+	// JTable to contain list of words
+	JTable wordListTable;
 
 	public WordFinder() {
 		super("Word Finder");
@@ -116,9 +117,6 @@ public class WordFinder extends JFrame {
 
 		c.fill = GridBagConstraints.BOTH;
 
-		// create a word list model
-		DefaultListModel wordListModel = new DefaultListModel();
-
 		// load in the default word list
 		URL url = WordFinder.class.getResource("words.txt");
 		System.out.println(url);
@@ -136,33 +134,46 @@ public class WordFinder extends JFrame {
 
 		@SuppressWarnings("unchecked")
 		List<String> data = words.find("");
+		
+		// create a word list model. a one column table with the right number of rows
+//		DefaultListModel wordListModel = new DefaultListModel();
+		DefaultTableModel wordListModel = new DefaultTableModel(new Object[] {"words"}, data.size());
 
 		// convert generic List to array
 		String[] dataArray = new String[data.size()];
 		dataArray = data.toArray(dataArray);
-
-		// fill out the words from the default file
-		for (String s : dataArray)
-			wordListModel.addElement(s);
+		
+		System.out.println(wordListModel.getRowCount());
+		// fill out the words into the table from the default file
+		for (int i=0; i < wordListModel.getRowCount(); i++)
+			wordListModel.setValueAt(dataArray[i], i, 0);
+//			wordListModel.addElement(s);
 		// System.out.println(s);
 
-		// create a list model that is a filtered version of the full world list
-		FilteredListModel filteredListModel = new FilteredListModel(
-				wordListModel);
-
-		wordList = new JList(filteredListModel);
+//		TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<DefaultTableModel>(wordListModel);
+		wordListTable = new JTable(wordListModel);
 
 		// add the word list to a scrolling pane
-		JScrollPane scrollPane = new JScrollPane(wordList);
+		JScrollPane scrollPane = new JScrollPane(wordListTable);
 		panel.add(scrollPane, c);
 
 		// create text field change handler
-		TextFieldHandler inputFieldHandler = new TextFieldHandler(
-				filteredListModel, inputField.getText());
+//		TextFieldHandler inputFieldHandler = new TextFieldHandler(
+//				filteredListModel, inputField.getText());
 
 		// add event listener to the inputField to listen to the underlying
 		// Document for changes
-		inputField.getDocument().addDocumentListener(inputFieldHandler);
+		inputField.getDocument().addDocumentListener(new DocumentListener() {
+			public void changedUpdate(DocumentEvent e) {
+			}
+
+			public void removeUpdate(DocumentEvent e) {
+			}
+
+			public void insertUpdate(DocumentEvent e) {
+				System.out.println(inputField.getText());
+			}
+		});
 
 		// clear button event handler
 		clearButton.addActionListener(new ActionListener() {
