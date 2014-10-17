@@ -93,7 +93,7 @@ public class WordList {
         if (url == null)
             throw new RuntimeException("Missing resource: words");
         try {
-            words.load(url.openStream());
+			words.load(url.openStream());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

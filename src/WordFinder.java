@@ -1,5 +1,6 @@
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -156,6 +157,7 @@ public class WordFinder extends JFrame {
 		c.gridwidth = 1;
 		c.weightx = 0;
 		c.weighty = 0;
+		c.insets = new Insets(5,5,5,5);
 
 		panel.add(findLabel, c);
 
