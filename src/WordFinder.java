@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.RowFilter;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -59,6 +60,8 @@ public class WordFinder extends JFrame {
 	// JTable to contain list of words
 	JTable wordListTable;
 
+	TableRowSorter<DefaultTableModel> sorter;
+	
 	public WordFinder() {
 		super("Word Finder");
 
@@ -150,9 +153,9 @@ public class WordFinder extends JFrame {
 //			wordListModel.addElement(s);
 		// System.out.println(s);
 
-//		TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<DefaultTableModel>(wordListModel);
+		sorter = new TableRowSorter<DefaultTableModel>(wordListModel);
 		wordListTable = new JTable(wordListModel);
-
+		
 		// add the word list to a scrolling pane
 		JScrollPane scrollPane = new JScrollPane(wordListTable);
 		panel.add(scrollPane, c);
@@ -168,10 +171,12 @@ public class WordFinder extends JFrame {
 			}
 
 			public void removeUpdate(DocumentEvent e) {
+				newFilter();
 			}
 
 			public void insertUpdate(DocumentEvent e) {
-				System.out.println(inputField.getText());
+//				System.out.println(inputField.getText());
+				newFilter();
 			}
 		});
 
@@ -190,6 +195,18 @@ public class WordFinder extends JFrame {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 	}
 
+	private void newFilter() {
+	    RowFilter<DefaultTableModel, Object> rowFilter = null;
+	    try {
+	        rowFilter = RowFilter.regexFilter(inputField.getText());
+	    }
+	    catch(java.util.regex.PatternSyntaxException ex) {
+	        return;
+	    }
+	    sorter.setRowFilter(rowFilter);
+	    wordListTable.setRowSorter(sorter);
+	}
+	
 	/**
 	 * Main method. Makes and displays a WordFinder window.
 	 * 
