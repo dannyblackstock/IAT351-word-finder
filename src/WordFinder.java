@@ -60,6 +60,7 @@ public class WordFinder extends JFrame {
 	// JTable to contain list of words
 	JTable wordListTable;
 
+	// Create a table sorter object to filter the display
 	TableRowSorter<DefaultTableModel> sorter;
 	
 	public WordFinder() {
@@ -72,6 +73,8 @@ public class WordFinder extends JFrame {
 		window.getContentPane().add(panel);
 
 		panel.setLayout(new GridBagLayout());
+		
+		// define gridbag constraints
 		GridBagConstraints c = new GridBagConstraints();
 
 		panel.setFocusable(true);
@@ -138,8 +141,9 @@ public class WordFinder extends JFrame {
 		@SuppressWarnings("unchecked")
 		List<String> data = words.find("");
 		
-		// create a word list model. a one column table with the right number of rows
 //		DefaultListModel wordListModel = new DefaultListModel();
+		
+		// create a word list model. a one column table with the right number of rows
 		DefaultTableModel wordListModel = new DefaultTableModel(new Object[] {"words"}, data.size());
 
 		// convert generic List to array
@@ -147,15 +151,18 @@ public class WordFinder extends JFrame {
 		dataArray = data.toArray(dataArray);
 		
 		System.out.println(wordListModel.getRowCount());
-		// fill out the words into the table from the default file
+		// insert the words into the table from the default file
 		for (int i=0; i < wordListModel.getRowCount(); i++) {
 			wordListModel.setValueAt(dataArray[i], i, 0);
 		}
 		
+		// initialize the sorter object
 		sorter = new TableRowSorter<DefaultTableModel>(wordListModel);
+		
+		// create the actual table that will be displayed, using the table model
 		wordListTable = new JTable(wordListModel);
 		
-		// add the word list to a scrolling pane
+		// add the word table to a scrolling pane
 		JScrollPane scrollPane = new JScrollPane(wordListTable);
 		panel.add(scrollPane, c);
 
@@ -165,6 +172,7 @@ public class WordFinder extends JFrame {
 			public void changedUpdate(DocumentEvent e) {
 			}
 
+			// call newFilter() whenever a letter is changed, essentially
 			public void removeUpdate(DocumentEvent e) {
 				newFilter();
 			}
@@ -190,15 +198,22 @@ public class WordFinder extends JFrame {
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 	}
 
+	// Code from http://stackoverflow.com/questions/7067303/jtable-filtering-with-jtextfield-doesnt-work
+	// called whenever the input field changes
 	private void newFilter() {
+		// generic object used to sort/filter models
 	    RowFilter<DefaultTableModel, Object> rowFilter = null;
 	    try {
-	        rowFilter = RowFilter.regexFilter(inputField.getText());
+	    	// try matching the table model with the entered word, ignoring case (regex)
+	        rowFilter = RowFilter.regexFilter("(?i)" + inputField.getText());
 	    }
 	    catch(java.util.regex.PatternSyntaxException ex) {
 	        return;
 	    }
+	    // set the table sorter object to use the defined row filter
 	    sorter.setRowFilter(rowFilter);
+	    
+	    // set the table to be sorted by the table sorter
 	    wordListTable.setRowSorter(sorter);
 	}
 	
