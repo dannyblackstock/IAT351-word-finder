@@ -35,10 +35,12 @@ public class WordFinder extends JFrame {
 	 */
 
 	// class constants
-	private static final int WINDOW_WIDTH = 275; // pixels
-	private static final int WINDOW_HEIGHT = 275; // pixels
+	private static final int WINDOW_WIDTH = 500; // pixels
+	private static final int WINDOW_HEIGHT = 500; // pixels
 	private static final int TEXT_WIDTH = 20; // characters
 
+	int totalWords;
+	
 	// window for GUI
 	private JFrame window = new JFrame("Word Finder");
 
@@ -55,7 +57,7 @@ public class WordFinder extends JFrame {
 	JButton clearButton = new JButton("Clear");
 
 	// total words found label
-	JLabel numWordsString = new JLabel("45427 words total.");
+	JLabel numWordsString = new JLabel("");
 
 	// JTable to contain list of words
 	JTable wordListTable;
@@ -165,7 +167,10 @@ public class WordFinder extends JFrame {
 		// add the word table to a scrolling pane
 		JScrollPane scrollPane = new JScrollPane(wordListTable);
 		panel.add(scrollPane, c);
-
+		
+		// store total number of words
+		totalWords = wordListTable.getRowCount();
+		
 		// add event listener to the inputField to listen to the underlying
 		// Document for changes
 		inputField.getDocument().addDocumentListener(new DocumentListener() {
@@ -215,6 +220,17 @@ public class WordFinder extends JFrame {
 	    
 	    // set the table to be sorted by the table sorter
 	    wordListTable.setRowSorter(sorter);
+	    
+	    // if no words are hidden, change the text
+	    if (totalWords == wordListTable.getRowCount()) {
+	    	numWordsString.setText(totalWords + " total words.");
+	    }
+	    else if (wordListTable.getRowCount() == 1){
+	    	numWordsString.setText(wordListTable.getRowCount() + " word found containing " + inputField.getText());
+	    }
+	    else {
+	    	numWordsString.setText(wordListTable.getRowCount() + " words found containing " + inputField.getText());
+	    }
 	}
 	
 	/**
