@@ -148,21 +148,16 @@ public class WordFinder extends JFrame {
 		
 		System.out.println(wordListModel.getRowCount());
 		// fill out the words into the table from the default file
-		for (int i=0; i < wordListModel.getRowCount(); i++)
+		for (int i=0; i < wordListModel.getRowCount(); i++) {
 			wordListModel.setValueAt(dataArray[i], i, 0);
-//			wordListModel.addElement(s);
-		// System.out.println(s);
-
+		}
+		
 		sorter = new TableRowSorter<DefaultTableModel>(wordListModel);
 		wordListTable = new JTable(wordListModel);
 		
 		// add the word list to a scrolling pane
 		JScrollPane scrollPane = new JScrollPane(wordListTable);
 		panel.add(scrollPane, c);
-
-		// create text field change handler
-//		TextFieldHandler inputFieldHandler = new TextFieldHandler(
-//				filteredListModel, inputField.getText());
 
 		// add event listener to the inputField to listen to the underlying
 		// Document for changes
